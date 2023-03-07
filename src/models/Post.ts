@@ -11,7 +11,7 @@ export interface IPost {
 
 const PostSchema = new Schema<IPost>(
   {
-    author: { type: Schema.Types.ObjectId, required: true },
+    author: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
     content: { type: String, required: true, minlength: 1 },
     title: { type: String, required: true, minlength: 1 },
   },
