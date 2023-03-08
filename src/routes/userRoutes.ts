@@ -16,3 +16,5 @@ userRoutes.patch('/:id/author', userController.toggleUserAuthorPrivileges);
 userRoutes.patch('/:id/admin', userController.toggleUserAdminrPrivileges);
 
 userRoutes.post('/authenticate', userController.login);
+
+export default userRoutes;
