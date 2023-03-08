@@ -159,3 +159,5 @@ class UserController {
     return res.json({ token: '' });
   }
 }
+
+export default UserController;
