@@ -4,6 +4,7 @@ import { body } from 'express-validator';
 import { validationResult } from 'express-validator/src/validation-result';
 import { StatusCodes } from 'http-status-codes';
 import { JwtPayload, verify } from 'jsonwebtoken';
+import { errorFormatter } from '../lib/express-validator';
 import RefreshToken from '../models/RefreshToken';
 import User from '../models/User';
 import { authenticate, generateAuthToken } from '../utils/auth';
@@ -57,7 +58,7 @@ class UserController {
       res: Response,
       next: NextFunction
     ) => {
-      const errors = validationResult(req);
+      const errors = validationResult(req).formatWith(errorFormatter);
       if (!errors.isEmpty()) {
         return res
           .status(StatusCodes.BAD_REQUEST)
@@ -70,10 +71,8 @@ class UserController {
           return res.status(StatusCodes.BAD_REQUEST).json({
             errors: [
               {
-                value: req.body.email,
                 msg: 'Esse email já está em uso',
                 param: 'email',
-                location: 'body',
               },
             ],
           });
@@ -277,7 +276,7 @@ class UserController {
       return res.status(StatusCodes.OK).json({ token: newToken });
     } catch (err) {
       return res.status(StatusCodes.UNAUTHORIZED).json({
-        errors: [{ msg: 'Token de autenticação inválido' }],
+        errors: [{ param: '', msg: 'Token de autenticação inválido' }],
       });
     }
   }
