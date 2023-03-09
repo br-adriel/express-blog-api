@@ -118,8 +118,19 @@ class UserController {
    * @param {Request} req Espera que o id do usuário esteja nos parâmetros da URL
    * @returns Retorna um json com um usuário
    */
-  getUser(req: Request<{ id: string }>, res: Response, next: NextFunction) {
-    return res.json({});
+  async getUser(
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const user = await User.findById(req.params.id).select(
+        '-refreshToken -password -__v'
+      );
+      return res.json({ user });
+    } catch (err) {
+      return res.sendStatus(StatusCodes.NOT_FOUND);
+    }
   }
 
   /**
