@@ -1,34 +1,105 @@
+import { hash } from 'bcrypt';
 import { NextFunction, Request, Response } from 'express';
+import { body } from 'express-validator';
+import { validationResult } from 'express-validator/src/validation-result';
+import { StatusCodes } from 'http-status-codes';
+import User from '../models/User';
+import { authenticate } from '../utils/auth';
 
 class UserController {
   /**
    * Cria um novo usuário
-   *
-   * @param {Request} req Requisição do express, espera no body as propriedades firstName,
-   * lastName, email e password para a criação do usuário
-   *
-   * @param {Response} res
-   *
-   * @param {NextFunction} next
-   *
-   * @returns Retorna um json com os tokens de autenticação
    */
-  createUser(
-    req: Request<
-      {},
-      {},
-      {
-        firstName: string;
-        lastName: string;
-        email: string;
-        password: string;
+  createUser = [
+    body('firstName')
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage('Informe um nome')
+      .escape(),
+
+    body('lastName')
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage('Informe um sobrenome')
+      .escape(),
+
+    body('email')
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage('Informe um email')
+      .isEmail()
+      .withMessage('O valor não é um email válido'),
+
+    body('password')
+      .isStrongPassword()
+      .withMessage('A senha não é forte o suficiente')
+      .isLength({ min: 8 })
+      .withMessage('A senha é curta demais'),
+
+    body('password2')
+      .custom((value, { req }) => value === req.body.password)
+      .withMessage('As senhas não são iguais'),
+
+    async (
+      req: Request<
+        {},
+        {},
+        {
+          firstName: string;
+          lastName: string;
+          email: string;
+          password: string;
+          password2: string;
+        }
+      >,
+      res: Response,
+      next: NextFunction
+    ) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res
+          .status(StatusCodes.BAD_REQUEST)
+          .json({ errors: errors.array() });
       }
-    >,
-    res: Response,
-    next: NextFunction
-  ) {
-    return res.status(201).json({ token: '' });
-  }
+
+      try {
+        const user = await User.findOne({ email: req.body.email });
+        if (user) {
+          return res.status(StatusCodes.BAD_REQUEST).json({
+            errors: [
+              {
+                value: req.body.email,
+                msg: 'Esse email já está em uso',
+                param: 'email',
+                location: 'body',
+              },
+            ],
+          });
+        }
+
+        const hashedPassword = await hash(req.body.password, 10);
+        const newUser = new User({
+          email: req.body.email,
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+          password: hashedPassword,
+        });
+
+        const savedUser = await newUser.save();
+        const [token, refreshToken] = await authenticate(
+          savedUser.email,
+          req.body.password
+        );
+
+        return res.status(StatusCodes.CREATED).json({
+          token,
+          refreshToken,
+        });
+      } catch (err) {
+        return next(err);
+      }
+    },
+  ];
 
   /**
    * Lista todos os usuários

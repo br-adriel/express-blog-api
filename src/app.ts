@@ -8,6 +8,10 @@ import userRoutes from './routes/userRoutes';
 const PORT = process.env.PORT || 3000;
 const app = express();
 
+// Middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // Rotas
 app.use('/comments', commentRoutes);
 app.use('/posts', postRoutes);
