@@ -201,13 +201,56 @@ class UserController {
    * @param req Espera que o email e o password sejam passados no body
    * @returns Retorna json com o token de autenticação
    */
-  login(
-    req: Request<{}, {}, { email: string; password: string }>,
-    res: Response,
-    next: NextFunction
-  ) {
-    return res.json({ token: '' });
-  }
+  login = [
+    body('email')
+      .trim()
+      .isLength({ min: 3 })
+      .withMessage('Informe um email')
+      .isEmail()
+      .withMessage('O valor não é um email válido'),
+
+    body('password').isLength({ min: 8 }).withMessage('A senha é curta demais'),
+
+    async (
+      req: Request<
+        {},
+        {},
+        {
+          email: string;
+          password: string;
+        }
+      >,
+      res: Response,
+      next: NextFunction
+    ) => {
+      try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) throw new Error();
+
+        const user = await User.findOne({ email: req.body.email });
+        if (!user) throw new Error();
+
+        const [token, refreshToken] = await authenticate(
+          req.body.email,
+          req.body.password
+        );
+
+        return res.status(StatusCodes.OK).json({
+          token,
+          refreshToken,
+        });
+      } catch (err) {
+        return res.status(StatusCodes.UNAUTHORIZED).json({
+          errors: [
+            {
+              param: 'email',
+              msg: 'Credenciais inválidas',
+            },
+          ],
+        });
+      }
+    },
+  ];
 
   async refreshToken(req: Request, res: Response, next: NextFunction) {
     const authToken = req.headers.authorization;
