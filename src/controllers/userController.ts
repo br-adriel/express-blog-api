@@ -3,8 +3,10 @@ import { NextFunction, Request, Response } from 'express';
 import { body } from 'express-validator';
 import { validationResult } from 'express-validator/src/validation-result';
 import { StatusCodes } from 'http-status-codes';
+import { JwtPayload, verify } from 'jsonwebtoken';
+import RefreshToken from '../models/RefreshToken';
 import User from '../models/User';
-import { authenticate } from '../utils/auth';
+import { authenticate, generateAuthToken } from '../utils/auth';
 
 class UserController {
   /**
@@ -104,9 +106,6 @@ class UserController {
   /**
    * Lista todos os usuários
    *
-   * @param {Request} req
-   * @param {Response} res
-   * @param {NextFunction} next
    * @returns Retorna um json com um array de usuários
    */
   getUsers(req: Request, res: Response, next: NextFunction) {
@@ -116,13 +115,7 @@ class UserController {
   /**
    * Lista dados de um usuário específico
    *
-   * @param {Request} req Requisição do express, espera que o id do usuário esteja nos
-   * parâmetros da URL
-   *
-   * @param {Response} res
-   *
-   * @param {NextFunction} next
-   *
+   * @param {Request} req Espera que o id do usuário esteja nos parâmetros da URL
    * @returns Retorna um json com um usuário
    */
   getUser(req: Request<{ id: string }>, res: Response, next: NextFunction) {
@@ -132,14 +125,9 @@ class UserController {
   /**
    * Atualiza um usuário
    *
-   * @param req Requisição do express, espera que o id do usuário a ser editado
-   * seja passado nos parâmetros da url e que o body do request tenha os campos
-   * email, firstName e lastName com os novos valores
-   *
-   * @param res
-   *
-   * @param next
-   *
+   * @param req Espera que o id do usuário a ser editado seja passado nos
+   * parâmetros da url e que o body do request tenha os campos email, firstName
+   * e lastName com os novos valores
    * @returns Retorna o usuário com os dados atualizados
    */
   updateUser(
@@ -157,13 +145,7 @@ class UserController {
   /**
    * Remove um usuário
    *
-   * @param req Requisição do express, espera que o id do usuário a ser excluído
-   * seja passado nos parâmetros da URL
-   *
-   * @param res
-   *
-   * @param next
-   *
+   * @param req Espera que o id do usuário a ser excluído seja passado nos parâmetros da URL
    * @returns Retorna o código 200
    */
   removeUser(req: Request<{ id: string }>, res: Response, next: NextFunction) {
@@ -173,12 +155,8 @@ class UserController {
   /**
    * Habilita e deabilita os privilégios de um usuário para escrever posts
    *
-   * @param req Requisição do express, espera que o id do usuário o qual os
-   * privilégios devem ser modificados seja passado nos parâmetros da URL
-   *
-   * @param res
-   *
-   * @param next
+   * @param req Espera que o id do usuário o qual os privilégios devem ser
+   * modificados seja passado nos parâmetros da URL
    *
    * @returns Retorna o código 200
    */
@@ -193,12 +171,8 @@ class UserController {
   /**
    * Habilita e deabilita os privilégios de admin de um usuário
    *
-   * @param req Requisição do express, espera que o id do usuário o qual os
-   * privilégios devem ser modificados seja passado nos parâmetros da URL
-   *
-   * @param res
-   *
-   * @param next
+   * @param req Espera que o id do usuário o qual os privilégios devem ser
+   * modificados seja passado nos parâmetros da URL
    *
    * @returns Retorna o código 200
    */
@@ -213,13 +187,7 @@ class UserController {
   /**
    * Realiza o login do usuário
    *
-   * @param req Requisição do express, espera que o email e o password sejam
-   * passados no body
-   *
-   * @param res
-   *
-   * @param next
-   *
+   * @param req Espera que o email e o password sejam passados no body
    * @returns Retorna json com o token de autenticação
    */
   login(
@@ -228,6 +196,36 @@ class UserController {
     next: NextFunction
   ) {
     return res.json({ token: '' });
+  }
+
+  async refreshToken(req: Request, res: Response, next: NextFunction) {
+    const authToken = req.headers.authorization;
+    if (!authToken) return res.sendStatus(StatusCodes.UNAUTHORIZED);
+
+    const [tokenType, token] = authToken.split(' ');
+
+    try {
+      const payload = verify(token, process.env.TOKEN_SECRET!) as JwtPayload;
+      if (tokenType !== 'Bearer') throw new Error();
+
+      // verifica que o token existe no banco
+      const existingToken = await RefreshToken.findOne({ user: payload.sub });
+      if (!existingToken) throw new Error();
+
+      // verifica que o usuario a que o token se refere existe
+      const user = await User.findById(payload.sub);
+      if (!user) throw new Error();
+
+      // verifica que o token e o usuario estao relacionados
+      if (user.refreshToken?.toString() !== existingToken.id) throw new Error();
+
+      const newToken = await generateAuthToken(user.id);
+      return res.status(StatusCodes.OK).json({ token: newToken });
+    } catch (err) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        errors: [{ msg: 'Token de autenticação inválido' }],
+      });
+    }
   }
 }
 

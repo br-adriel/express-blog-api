@@ -7,7 +7,7 @@ export interface IUser {
   password: string;
   isAuthor: boolean;
   isAdmin: boolean;
-  refreshTokens?: Types.ObjectId[];
+  refreshToken?: Types.ObjectId;
   fullName: string;
 }
 
@@ -24,8 +24,8 @@ const UserSchema = new Schema<IUser>({
   isAdmin: { type: Boolean, required: true, default: false },
   isAuthor: { type: Boolean, required: true, default: true },
   password: { type: String, required: true },
-  refreshTokens: {
-    type: [Schema.Types.ObjectId],
+  refreshToken: {
+    type: Schema.Types.ObjectId,
     ref: 'RefreshToken',
     required: false,
   },

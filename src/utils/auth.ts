@@ -1,4 +1,4 @@
-import { compareSync } from 'bcrypt';
+import { compareSync, hashSync } from 'bcrypt';
 import { sign } from 'jsonwebtoken';
 import RefreshToken from '../models/RefreshToken';
 import User from '../models/User';
@@ -36,10 +36,17 @@ export async function generateAuthToken(
   });
 
   if (isRefreshToken) {
-    const newRefreshToken = new RefreshToken({ user: userId });
+    const newRefreshToken = new RefreshToken({
+      user: userId,
+    });
     const savedRefreshToken = await newRefreshToken.save();
+
+    const user = await User.findById(userId);
+    if (user!.refreshToken) {
+      RefreshToken.findByIdAndDelete(user?.refreshToken);
+    }
     await User.findByIdAndUpdate(userId, {
-      $addToSet: { refreshTokens: [savedRefreshToken.id] },
+      refreshToken: savedRefreshToken.id,
     });
   }
 

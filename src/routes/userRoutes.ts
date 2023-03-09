@@ -26,4 +26,6 @@ userRoutes.patch(
 
 userRoutes.post('/authenticate', userController.login);
 
+userRoutes.post('/authenticate/refresh', userController.refreshToken);
+
 export default userRoutes;
