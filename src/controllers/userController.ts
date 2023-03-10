@@ -143,16 +143,17 @@ class UserController {
    * @param req Espera que o id do usuário a ser editado seja passado nos
    * parâmetros da url e que o body do request tenha os campos firstName
    * e lastName com os novos valores
-   * @returns Retorna o usuário com os dados atualizados
    */
   updateUser = [
     body('firstName')
+      .optional()
       .trim()
       .isLength({ min: 1 })
       .withMessage('Informe um nome')
       .escape(),
 
     body('lastName')
+      .optional()
       .trim()
       .isLength({ min: 1 })
       .withMessage('Informe um sobrenome')
@@ -171,15 +172,14 @@ class UserController {
       }
 
       try {
-        const user = await User.findByIdAndUpdate(req.params.id, {
-          firstName: req.body.firstName,
-          lastName: req.body.lastName,
-        }).select('-refreshToken -password -__v');
+        const user = await User.findById(req.params.id);
+        if (!user) return res.sendStatus(StatusCodes.NOT_FOUND);
 
-        user!.firstName = req.body.firstName;
-        user!.lastName = req.body.lastName;
+        if (req.body.firstName) user.firstName = req.body.firstName;
+        if (req.body.lastName) user.lastName = req.body.lastName;
+        await user.save();
 
-        return res.status(StatusCodes.OK).json({ user });
+        return res.sendStatus(StatusCodes.OK);
       } catch (error) {
         return next(error);
       }
