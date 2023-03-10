@@ -1,5 +1,6 @@
-import { compareSync, hashSync } from 'bcrypt';
-import { sign } from 'jsonwebtoken';
+import { compareSync } from 'bcrypt';
+import { Request } from 'express';
+import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import RefreshToken from '../models/RefreshToken';
 import User from '../models/User';
 
@@ -51,4 +52,21 @@ export async function generateAuthToken(
   }
 
   return token;
+}
+
+/**
+ * Busca o usuário referente ao token quando ele é passado no request, e null
+ * quando não é passado ou o token é inválido
+ */
+export async function getUserFromRequestToken(req: Request) {
+  const authToken = req.headers.authorization;
+  if (!authToken) return null;
+
+  const [tokenType, token] = authToken.split(' ');
+
+  const payload = verify(token, process.env.TOKEN_SECRET!) as JwtPayload;
+  if (tokenType !== 'Bearer') return null;
+
+  const user = (await User.findById(payload.sub)) as Express.User;
+  return user;
 }
