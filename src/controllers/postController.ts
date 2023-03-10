@@ -21,10 +21,7 @@ export default class PostController {
   /**
    * Busca o post específicado pelo id
    *
-   * @param {Request} req Requisição do express, espera o campo 'id' nos parâmetros da url
-   * @param {Response} res
-   * @param {NextFunction} next
-   * @returns Resposta com objeto json representando o post solicitado
+   * @param {Request} req Espera o campo 'id' nos parâmetros da url
    */
   async getPost(
     req: Request<{ id: string }>,
@@ -37,10 +34,7 @@ export default class PostController {
   /**
    * Cria um novo post
    *
-   * @param {Request} req Requisição do express, espera os campos title, content e author no seu body
-   * @param {Response} res
-   * @param {NextFunction} next
-   * @returns Resposta 201 informando que o post foi criado
+   * @param {Request} req Espera os campos title e content no seu body
    */
   async createPost(
     req: Request<
@@ -49,7 +43,6 @@ export default class PostController {
       {
         title: string;
         content: string;
-        author: string;
       }
     >,
     res: Response,
@@ -61,10 +54,8 @@ export default class PostController {
   /**
    * Atualiza o post com a id correspondente
    *
-   * @param {Request} req Requisição do express, espera o campo id, correspondente ao post a ser atualizado, nos parâmetros da url
-   * @param res
-   * @param next
-   * @returns Retorna um json com o post atualizado
+   * @param {Request} req Espera o campo id, correspondente ao post a ser
+   * atualizado, nos parâmetros da url
    */
   updatePost(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     return res.json({});
@@ -73,10 +64,8 @@ export default class PostController {
   /**
    * Remove o post com a id correspondente
    *
-   * @param {Request} req Requisição do express, espera o campo id, correspondente ao post a ser apagado, nos parâmetros da url
-   * @param res
-   * @param next
-   * @returns
+   * @param {Request} req Espera o campo id, correspondente ao post a ser
+   * apagado, nos parâmetros da url
    */
   removePost(req: Request<{ id: string }>, res: Response, next: NextFunction) {
     return res.sendStatus(200);
