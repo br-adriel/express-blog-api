@@ -28,7 +28,7 @@ class UserController {
 
     body('email')
       .trim()
-      .isLength({ min: 1 })
+      .isLength({ min: 3 })
       .withMessage('Informe um email')
       .isEmail()
       .withMessage('O valor não é um email válido'),
@@ -141,21 +141,50 @@ class UserController {
    * Atualiza um usuário
    *
    * @param req Espera que o id do usuário a ser editado seja passado nos
-   * parâmetros da url e que o body do request tenha os campos email, firstName
+   * parâmetros da url e que o body do request tenha os campos firstName
    * e lastName com os novos valores
    * @returns Retorna o usuário com os dados atualizados
    */
-  updateUser(
-    req: Request<
-      { id: string },
-      {},
-      { email: string; firstName: string; lastName: string }
-    >,
-    res: Response,
-    next: NextFunction
-  ) {
-    return res.json({});
-  }
+  updateUser = [
+    body('firstName')
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage('Informe um nome')
+      .escape(),
+
+    body('lastName')
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage('Informe um sobrenome')
+      .escape(),
+
+    async (
+      req: Request<{ id: string }, {}, { firstName: string; lastName: string }>,
+      res: Response,
+      next: NextFunction
+    ) => {
+      const errors = validationResult(req).formatWith(errorFormatter);
+      if (!errors.isEmpty()) {
+        return res
+          .status(StatusCodes.BAD_REQUEST)
+          .json({ errors: errors.array() });
+      }
+
+      try {
+        const user = await User.findByIdAndUpdate(req.params.id, {
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+        }).select('-refreshToken -password -__v');
+
+        user!.firstName = req.body.firstName;
+        user!.lastName = req.body.lastName;
+
+        return res.status(StatusCodes.OK).json({ user });
+      } catch (error) {
+        return next(error);
+      }
+    },
+  ];
 
   /**
    * Remove um usuário
