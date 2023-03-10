@@ -190,10 +190,18 @@ class UserController {
    * Remove um usuário
    *
    * @param req Espera que o id do usuário a ser excluído seja passado nos parâmetros da URL
-   * @returns Retorna o código 200
    */
-  removeUser(req: Request<{ id: string }>, res: Response, next: NextFunction) {
-    return res.sendStatus(200);
+  async removeUser(
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      await User.findByIdAndDelete(req.params.id);
+      return res.sendStatus(StatusCodes.OK);
+    } catch (err) {
+      return res.sendStatus(StatusCodes.NOT_FOUND);
+    }
   }
 
   /**
