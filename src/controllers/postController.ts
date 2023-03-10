@@ -12,7 +12,7 @@ export default class PostController {
     try {
       const posts = await Post.find({})
         .populate('author', '-password -refreshToken -__v')
-        .select('-__v');
+        .select('-__v -content');
       return res.status(StatusCodes.OK).json({ posts });
     } catch (error) {
       return next(error);
@@ -29,7 +29,14 @@ export default class PostController {
     res: Response,
     next: NextFunction
   ) {
-    return res.json({});
+    try {
+      const post = await Post.findById(req.params.id)
+        .populate('author', '-password -refreshToken -__v')
+        .select('-__v');
+      return res.status(StatusCodes.OK).json({ post });
+    } catch (error) {
+      return next(error);
+    }
   }
 
   /**
