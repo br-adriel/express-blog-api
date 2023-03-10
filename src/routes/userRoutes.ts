@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import UserController from '../controllers/userController';
+import { UserBelongsToUser } from '../middlewares/ResourceBelongsToUser.middleware';
 import UserMustBeAuthenticated from '../middlewares/UserMustBeAuthenticated.middleware';
 
 const userRoutes = Router();
@@ -9,8 +10,18 @@ userRoutes.get('/', UserMustBeAuthenticated, userController.getUsers);
 userRoutes.post('/', userController.createUser);
 
 userRoutes.get('/:id', userController.getUser);
-userRoutes.patch('/:id', UserMustBeAuthenticated, userController.updateUser);
-userRoutes.delete('/:id', UserMustBeAuthenticated, userController.removeUser);
+userRoutes.patch(
+  '/:id',
+  UserMustBeAuthenticated,
+  UserBelongsToUser,
+  userController.updateUser
+);
+userRoutes.delete(
+  '/:id',
+  UserMustBeAuthenticated,
+  UserBelongsToUser,
+  userController.removeUser
+);
 
 userRoutes.patch(
   '/:id/author',
