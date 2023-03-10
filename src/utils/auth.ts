@@ -59,14 +59,17 @@ export async function generateAuthToken(
  * quando não é passado ou o token é inválido
  */
 export async function getUserFromRequestToken(req: Request) {
-  const authToken = req.headers.authorization;
-  if (!authToken) return null;
+  try {
+    const authToken = req.headers.authorization;
+    if (!authToken) return null;
 
-  const [tokenType, token] = authToken.split(' ');
+    const [tokenType, token] = authToken.split(' ');
+    const payload = verify(token, process.env.TOKEN_SECRET!) as JwtPayload;
+    if (tokenType !== 'Bearer') return null;
 
-  const payload = verify(token, process.env.TOKEN_SECRET!) as JwtPayload;
-  if (tokenType !== 'Bearer') return null;
-
-  const user = (await User.findById(payload.sub)) as Express.User;
-  return user;
+    const user = (await User.findById(payload.sub)) as Express.User;
+    return user;
+  } catch (error) {
+    return null;
+  }
 }
