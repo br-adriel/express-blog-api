@@ -18,7 +18,9 @@ export default class CommentController {
     next: NextFunction
   ) {
     try {
-      const comments = await Comment.find({ post: req.params.postId });
+      const comments = await Comment.find({ post: req.params.postId })
+        .populate('author', '-__v -password -refreshToken')
+        .select('-__v -post');
       return res.status(StatusCodes.OK).json({ comments });
     } catch (error) {
       return next(error);

@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { StatusCodes } from 'http-status-codes';
 import { errorFormatter } from '../lib/express-validator';
+import Comment from '../models/Comment';
 import Post from '../models/Post';
 
 export default class PostController {
@@ -11,6 +12,7 @@ export default class PostController {
   async getPosts(req: Request, res: Response, next: NextFunction) {
     try {
       const posts = await Post.find({})
+        .populate('commentsCount')
         .populate('author', '-password -refreshToken -__v')
         .select('-__v -content');
       return res.status(StatusCodes.OK).json({ posts });
@@ -31,8 +33,11 @@ export default class PostController {
   ) {
     try {
       const post = await Post.findById(req.params.id)
+        .populate('commentsCount')
         .populate('author', '-password -refreshToken -__v')
         .select('-__v');
+
+      if (!post) return res.sendStatus(StatusCodes.NOT_FOUND);
       return res.status(StatusCodes.OK).json({ post });
     } catch (error) {
       return next(error);
