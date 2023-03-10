@@ -2,6 +2,7 @@ import { Router } from 'express';
 import UserController from '../controllers/userController';
 import { UserBelongsToUser } from '../middlewares/ResourceBelongsToUser.middleware';
 import UserMustBeAuthenticated from '../middlewares/UserMustBeAuthenticated.middleware';
+import { UserMustBeAdmin } from '../middlewares/UserPrivileges.middleware';
 
 const userRoutes = Router();
 const userController = new UserController();
@@ -26,13 +27,15 @@ userRoutes.delete(
 userRoutes.patch(
   '/:id/author',
   UserMustBeAuthenticated,
+  UserMustBeAdmin,
   userController.toggleUserAuthorPrivileges
 );
 
 userRoutes.patch(
   '/:id/admin',
   UserMustBeAuthenticated,
-  userController.toggleUserAdminrPrivileges
+  UserMustBeAdmin,
+  userController.toggleUserAdminPrivileges
 );
 
 userRoutes.post('/authenticate', userController.login);

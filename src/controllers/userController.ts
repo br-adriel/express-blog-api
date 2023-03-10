@@ -228,12 +228,21 @@ class UserController {
    *
    * @returns Retorna o código 200
    */
-  toggleUserAdminrPrivileges(
+  async toggleUserAdminPrivileges(
     req: Request<{ id: string }>,
     res: Response,
     next: NextFunction
   ) {
-    return res.sendStatus(200);
+    try {
+      const user = await User.findById(req.params.id);
+      if (!user) return res.sendStatus(StatusCodes.NOT_FOUND);
+
+      user.isAdmin = !user.isAdmin;
+      await user.save();
+      return res.sendStatus(StatusCodes.OK);
+    } catch (error) {
+      return next(error);
+    }
   }
 
   /**
