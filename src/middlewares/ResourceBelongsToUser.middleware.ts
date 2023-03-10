@@ -45,7 +45,6 @@ export async function PostBelongsToUser(
       const requestedPost = await Post.findById(req.params.id);
       if (!requestedPost) return res.sendStatus(StatusCodes.NOT_FOUND);
 
-      console.log(requestedPost.author.toString());
       if (req.user!.id !== requestedPost.author.toString())
         return res.sendStatus(StatusCodes.FORBIDDEN);
       return next();
