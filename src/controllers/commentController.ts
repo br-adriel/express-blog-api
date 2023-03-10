@@ -1,25 +1,25 @@
 import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import Comment from '../models/Comment';
 
 export default class CommentController {
   /**
    * Busca todos os comentários de um post
    *
-   * @param {Request} req Requisição do express, espera que o id do post esteja
-   * nos parâmetros da url com o nome postId
-   *
-   * @param {Response} res
-   *
-   * @param {NextFunction} next
-   *
-   * @returns Resposta com objeto json contendo todos os comentários do post
-   *
+   * @param {Request} req Espera que o id do post esteja nos parâmetros da url
+   * com o nome postId
    */
   async getCommentsFromPost(
     req: Request<{ postId: string }>,
     res: Response,
     next: NextFunction
   ) {
-    return res.json({ comments: [] });
+    try {
+      const comments = await Comment.find({ post: req.params.postId });
+      return res.status(StatusCodes.OK).json({ comments });
+    } catch (error) {
+      return next(error);
+    }
   }
 
   /**
