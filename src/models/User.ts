@@ -22,7 +22,7 @@ const UserSchema = new Schema<IUser>({
   firstName: { type: String, required: true, trim: true, minlength: 2 },
   lastName: { type: String, required: true, trim: true, minlength: 2 },
   isAdmin: { type: Boolean, required: true, default: false },
-  isAuthor: { type: Boolean, required: true, default: true },
+  isAuthor: { type: Boolean, required: true, default: false },
   password: { type: String, required: true },
   refreshToken: {
     type: Schema.Types.ObjectId,
