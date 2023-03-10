@@ -102,7 +102,16 @@ export default class PostController {
    * @param {Request} req Espera o campo id, correspondente ao post a ser
    * apagado, nos parâmetros da url
    */
-  removePost(req: Request<{ id: string }>, res: Response, next: NextFunction) {
-    return res.sendStatus(200);
+  async removePost(
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      await Post.findByIdAndDelete(req.params.id);
+      return res.sendStatus(StatusCodes.OK);
+    } catch (error) {
+      return next(error);
+    }
   }
 }
