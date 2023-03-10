@@ -12,3 +12,15 @@ export function UserMustBeAdmin(
   }
   return res.sendStatus(StatusCodes.UNAUTHORIZED);
 }
+
+export function UserMustBeAuthor(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  if (req.user) {
+    if (req.user.isAuthor) return next();
+    return res.sendStatus(StatusCodes.FORBIDDEN);
+  }
+  return res.sendStatus(StatusCodes.UNAUTHORIZED);
+}
