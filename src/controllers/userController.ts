@@ -209,15 +209,22 @@ class UserController {
    *
    * @param req Espera que o id do usuário o qual os privilégios devem ser
    * modificados seja passado nos parâmetros da URL
-   *
-   * @returns Retorna o código 200
    */
-  toggleUserAuthorPrivileges(
+  async toggleUserAuthorPrivileges(
     req: Request<{ id: string }>,
     res: Response,
     next: NextFunction
   ) {
-    return res.sendStatus(200);
+    try {
+      const user = await User.findById(req.params.id);
+      if (!user) return res.sendStatus(StatusCodes.NOT_FOUND);
+
+      user.isAuthor = !user.isAuthor;
+      await user.save();
+      return res.sendStatus(StatusCodes.OK);
+    } catch (error) {
+      return next(error);
+    }
   }
 
   /**
@@ -225,8 +232,6 @@ class UserController {
    *
    * @param req Espera que o id do usuário o qual os privilégios devem ser
    * modificados seja passado nos parâmetros da URL
-   *
-   * @returns Retorna o código 200
    */
   async toggleUserAdminPrivileges(
     req: Request<{ id: string }>,
