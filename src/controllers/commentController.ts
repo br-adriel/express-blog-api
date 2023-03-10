@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
+import { body, validationResult } from 'express-validator';
 import { StatusCodes } from 'http-status-codes';
+import { errorFormatter } from '../lib/express-validator';
 import Comment from '../models/Comment';
+import Post from '../models/Post';
 
 export default class CommentController {
   /**
@@ -25,29 +28,50 @@ export default class CommentController {
   /**
    * Cria um novo comentário
    *
-   * @param {Request} req Requisição do express, espera os campos content e
-   * author no seu body, e o postId nos parâmetros da url
-   *
-   * @param {Response} res
-   *
-   * @param {NextFunction} next
-   *
-   * @returns Resposta 201 com json do comentário criado
+   * @param {Request} req Espera o campo content no body, e o postId nos
+   * parâmetros da url
    */
-  async createComment(
-    req: Request<
-      { postId: string },
-      {},
-      {
-        content: string;
-        author: string;
+  createComment = [
+    body('content')
+      .isLength({ min: 1, max: 280 })
+      .withMessage('O comentário precisa ter de 1 a 280 caracteres'),
+
+    async (
+      req: Request<{ postId: string }, {}, { content: string }>,
+      res: Response,
+      next: NextFunction
+    ) => {
+      const errors = validationResult(req).formatWith(errorFormatter);
+      if (!errors.isEmpty()) {
+        return res
+          .status(StatusCodes.BAD_REQUEST)
+          .json({ errors: errors.array() });
       }
-    >,
-    res: Response,
-    next: NextFunction
-  ) {
-    return res.status(201).json({});
-  }
+
+      try {
+        const post = await Post.findById(req.params.postId);
+        if (!post)
+          return res.status(StatusCodes.NOT_FOUND).json({
+            errors: [
+              {
+                param: 'postId',
+                msg: 'Post não encontrado',
+              },
+            ],
+          });
+
+        const comment = new Comment({
+          author: req.user,
+          content: req.body.content,
+          post: req.params.postId,
+        });
+        await comment.save();
+        return res.sendStatus(StatusCodes.CREATED);
+      } catch (error) {
+        return next(error);
+      }
+    },
+  ];
 
   /**
    * Remove o comentário com a id correspondente
