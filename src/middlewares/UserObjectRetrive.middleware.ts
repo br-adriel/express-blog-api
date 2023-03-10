@@ -13,8 +13,8 @@ export async function UserObjectRetrieve(
   try {
     const user = await getUserFromRequestToken(req);
     if (user) req.user = user;
-    next();
+    return next();
   } catch (err) {
-    next(err);
+    return next(err);
   }
 }

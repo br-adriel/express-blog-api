@@ -24,7 +24,7 @@ export async function UserBelongsToUser(
 
       if (req.user!.id !== requestedUser.id)
         return res.sendStatus(StatusCodes.FORBIDDEN);
-      next();
+      return next();
     } catch (error) {
       next(error);
     }
