@@ -6,7 +6,7 @@ import UserMustBeAuthenticated from '../middlewares/UserMustBeAuthenticated.midd
 const userRoutes = Router();
 const userController = new UserController();
 
-userRoutes.get('/', UserMustBeAuthenticated, userController.getUsers);
+userRoutes.get('/', userController.getUsers);
 userRoutes.post('/', userController.createUser);
 
 userRoutes.get('/:id', userController.getUser);
