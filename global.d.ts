@@ -13,5 +13,9 @@ declare global {
     export interface User extends IUser {
       id: string;
     }
+
+    export interface Request {
+      user?: Express.User;
+    }
   }
 }
