@@ -44,7 +44,7 @@ export async function generateAuthToken(
 
     const user = await User.findById(userId);
     if (user!.refreshToken) {
-      RefreshToken.findByIdAndDelete(user?.refreshToken);
+      await RefreshToken.findByIdAndDelete(user?.refreshToken.toString());
     }
     await User.findByIdAndUpdate(userId, {
       refreshToken: savedRefreshToken.id,
