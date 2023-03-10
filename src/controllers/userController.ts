@@ -107,8 +107,13 @@ class UserController {
    *
    * @returns Retorna um json com um array de usuários
    */
-  getUsers(req: Request, res: Response, next: NextFunction) {
-    return res.json({ users: [] });
+  async getUsers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const users = await User.find({}).select('-refreshToken -password -__v');
+      return res.json({ users });
+    } catch (err) {
+      return res.sendStatus(StatusCodes.NOT_FOUND);
+    }
   }
 
   /**
