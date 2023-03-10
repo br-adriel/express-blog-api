@@ -92,9 +92,39 @@ export default class PostController {
    * @param {Request} req Espera o campo id, correspondente ao post a ser
    * atualizado, nos parâmetros da url
    */
-  updatePost(req: Request<{ id: string }>, res: Response, next: NextFunction) {
-    return res.json({});
-  }
+  updatePost = [
+    body('title')
+      .optional()
+      .isLength({ min: 1 })
+      .withMessage('Insira um título em sua postagem'),
+
+    body('content')
+      .optional()
+      .isLength({ min: 1 })
+      .withMessage('Adicione conteúdo a sua postagem'),
+
+    async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+      const errors = validationResult(req).formatWith(errorFormatter);
+      if (!errors.isEmpty()) {
+        return res
+          .status(StatusCodes.BAD_REQUEST)
+          .json({ errors: errors.array });
+      }
+
+      try {
+        const post = await Post.findById(req.params.id);
+        if (!post) return res.sendStatus(StatusCodes.NOT_FOUND);
+
+        if (req.body.title) post.title = req.body.title;
+        if (req.body.content) post.content = req.body.content;
+        await post.save();
+
+        return res.sendStatus(StatusCodes.OK);
+      } catch (error) {
+        return next(error);
+      }
+    },
+  ];
 
   /**
    * Remove o post com a id correspondente
