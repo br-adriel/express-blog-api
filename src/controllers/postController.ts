@@ -1,17 +1,21 @@
 import { NextFunction, Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
+import Post from '../models/Post';
 
 export default class PostController {
   /**
    * Busca todos os posts
-   *
-   * @param {Request} req
-   * @param {Response} res
-   * @param {NextFunction} next
-   * @returns Resposta com objeto json contendo todos os posts
-   *
    */
   async getPosts(req: Request, res: Response, next: NextFunction) {
-    return res.json({ posts: [] });
+    try {
+      const posts = await Post.find({}).populate(
+        'author',
+        '-password -refreshToken -__v'
+      );
+      return res.status(StatusCodes.OK).json({ posts });
+    } catch (error) {
+      return next(error);
+    }
   }
 
   /**
