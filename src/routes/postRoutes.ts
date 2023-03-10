@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import CommentController from '../controllers/commentController';
 import PostController from '../controllers/postController';
+import { PostBelongsToUser } from '../middlewares/ResourceBelongsToUser.middleware';
 import UserMustBeAuthenticated from '../middlewares/UserMustBeAuthenticated.middleware';
 
 const postRoutes = Router();
@@ -11,8 +12,18 @@ postRoutes.get('/', postController.getPosts);
 postRoutes.post('/', UserMustBeAuthenticated, postController.createPost);
 
 postRoutes.get('/:id', postController.getPost);
-postRoutes.put('/:id', UserMustBeAuthenticated, postController.updatePost);
-postRoutes.delete('/:id', UserMustBeAuthenticated, postController.removePost);
+postRoutes.patch(
+  '/:id',
+  UserMustBeAuthenticated,
+  PostBelongsToUser,
+  postController.updatePost
+);
+postRoutes.delete(
+  '/:id',
+  UserMustBeAuthenticated,
+  PostBelongsToUser,
+  postController.removePost
+);
 
 postRoutes.get('/:postId/comments', commentController.getCommentsFromPost);
 postRoutes.post(
