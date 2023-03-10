@@ -10,10 +10,9 @@ export default class PostController {
    */
   async getPosts(req: Request, res: Response, next: NextFunction) {
     try {
-      const posts = await Post.find({}).populate(
-        'author',
-        '-password -refreshToken -__v'
-      );
+      const posts = await Post.find({})
+        .populate('author', '-password -refreshToken -__v')
+        .select('-__v');
       return res.status(StatusCodes.OK).json({ posts });
     } catch (error) {
       return next(error);
