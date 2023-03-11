@@ -18,7 +18,10 @@ export default class CommentController {
     next: NextFunction
   ) {
     try {
-      const pageNumber = Number(req.query.page) || 1;
+      const pageNumber = Number.isInteger(Number(req.query.page))
+        ? Number(req.query.page)
+        : 1;
+      if (pageNumber < 1) return res.sendStatus(StatusCodes.BAD_REQUEST);
 
       const comments = await Comment.find({ post: req.params.postId })
         .populate('author', '-__v -password -refreshToken')
@@ -39,9 +42,16 @@ export default class CommentController {
         page: pageNumber,
       };
 
-      if (pageNumber < totalPages)
-        result.next = '/posts?page=' + (pageNumber + 1);
-      if (pageNumber > 1) result.prev = '/posts/?page=' + (pageNumber - 1);
+      if (pageNumber < totalPages) {
+        result.next = `/posts/${req.params.postId}/comments?page=${
+          pageNumber + 1
+        }`;
+      }
+      if (pageNumber > 1) {
+        result.prev = `/posts/${req.params.postId}/comments?page=${
+          pageNumber - 1
+        }`;
+      }
       return res.status(StatusCodes.OK).json(result);
     } catch (error) {
       return next(error);
