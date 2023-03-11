@@ -107,10 +107,37 @@ class UserController {
    *
    * @returns Retorna um json com um array de usuários
    */
-  async getUsers(req: Request, res: Response, next: NextFunction) {
+  async getUsers(
+    req: Request<{}, {}, {}, { page?: number }>,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
-      const users = await User.find({}).select('-refreshToken -password -__v');
-      return res.json({ users });
+      const pageNumber = Number.isInteger(Number(req.query.page))
+        ? Number(req.query.page)
+        : 1;
+      if (pageNumber < 1) return res.sendStatus(StatusCodes.BAD_REQUEST);
+
+      const users = await User.find()
+        .select('-refreshToken -password -__v')
+        .skip((pageNumber - 1) * 10)
+        .limit(10);
+
+      const totalUsers = await User.count();
+      const totalPages = Math.ceil(totalUsers / 10);
+
+      if (pageNumber > totalPages)
+        return res.sendStatus(StatusCodes.BAD_REQUEST);
+
+      const result: any = {
+        users,
+        page: pageNumber,
+      };
+
+      if (pageNumber < totalPages)
+        result.next = `/users?page=${pageNumber + 1}`;
+      if (pageNumber > 1) result.prev = `/users?page=${pageNumber + 1}`;
+      return res.status(StatusCodes.OK).json(result);
     } catch (err) {
       return res.sendStatus(StatusCodes.NOT_FOUND);
     }
