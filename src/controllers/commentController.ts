@@ -80,18 +80,17 @@ export default class CommentController {
    *
    * @param {Request} req Requisição do express, espera o campo id,
    * correspondente ao comentário a ser apagado, nos parâmetros da url
-   *
-   * @param res
-   *
-   * @param next
-   *
-   * @returns
    */
-  removeComment(
+  async removeComment(
     req: Request<{ id: string }>,
     res: Response,
     next: NextFunction
   ) {
-    return res.sendStatus(200);
+    try {
+      await Comment.findByIdAndDelete(req.params.id);
+      return res.sendStatus(StatusCodes.OK);
+    } catch (error) {
+      return next(error);
+    }
   }
 }
