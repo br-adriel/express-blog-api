@@ -11,7 +11,7 @@ export default class PostController {
    */
   async getPosts(req: Request, res: Response, next: NextFunction) {
     try {
-      const posts = await Post.find({})
+      const posts = await Post.find({ isPublished: true })
         .populate('commentsCount')
         .populate('author', '-password -refreshToken -__v')
         .select('-__v -content');
@@ -145,6 +145,22 @@ export default class PostController {
     try {
       await Post.findByIdAndDelete(req.params.id);
       return res.sendStatus(StatusCodes.OK);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async publishPost(
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const post = await Post.findByIdAndUpdate(req.params.id, {
+        $set: { isPublished: true },
+      });
+      if (!post) return res.sendStatus(StatusCodes.NOT_FOUND);
+      res.sendStatus(StatusCodes.OK);
     } catch (error) {
       return next(error);
     }

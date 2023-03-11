@@ -25,6 +25,8 @@ postRoutes.delete(
   postController.removePost
 );
 
+postRoutes.patch('/:id/publish', PostBelongsToUser, postController.publishPost);
+
 postRoutes.get('/:postId/comments', commentController.getCommentsFromPost);
 postRoutes.post(
   '/:postId/comments',
