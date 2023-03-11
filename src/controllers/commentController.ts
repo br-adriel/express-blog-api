@@ -13,15 +13,36 @@ export default class CommentController {
    * com o nome postId
    */
   async getCommentsFromPost(
-    req: Request<{ postId: string }>,
+    req: Request<{ postId: string }, {}, {}, { page?: number }>,
     res: Response,
     next: NextFunction
   ) {
     try {
+      const pageNumber = Number(req.query.page) || 1;
+
       const comments = await Comment.find({ post: req.params.postId })
         .populate('author', '-__v -password -refreshToken')
-        .select('-__v -post');
-      return res.status(StatusCodes.OK).json({ comments });
+        .select('-__v -post')
+        .skip((pageNumber - 1) * 10)
+        .limit(10);
+
+      const totalComments = await Comment.find({
+        post: req.params.postId,
+      }).count();
+      const totalPages = Math.ceil(totalComments / 10);
+
+      if (pageNumber > totalPages)
+        return res.sendStatus(StatusCodes.BAD_REQUEST);
+
+      const result: any = {
+        comments,
+        page: pageNumber,
+      };
+
+      if (pageNumber < totalPages)
+        result.next = '/posts?page=' + (pageNumber + 1);
+      if (pageNumber > 1) result.prev = '/posts/?page=' + (pageNumber - 1);
+      return res.status(StatusCodes.OK).json(result);
     } catch (error) {
       return next(error);
     }
