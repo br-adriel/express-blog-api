@@ -14,7 +14,10 @@ export default class PostController {
     next: NextFunction
   ) {
     try {
-      const pageNumber = Number(req.query.page) || 1;
+      const pageNumber = Number.isInteger(Number(req.query.page))
+        ? Number(req.query.page)
+        : 1;
+      if (pageNumber < 1) return res.sendStatus(StatusCodes.BAD_REQUEST);
 
       const posts = await Post.find({ isPublished: true })
         .populate('commentsCount')
@@ -23,7 +26,7 @@ export default class PostController {
         .skip((pageNumber - 1) * 10)
         .limit(10);
 
-      const totalPosts = await Post.find().count();
+      const totalPosts = await Post.count();
       const totalPages = Math.ceil(totalPosts / 10);
 
       if (pageNumber > totalPages)
