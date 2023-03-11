@@ -2,20 +2,39 @@ import { NextFunction, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { StatusCodes } from 'http-status-codes';
 import { errorFormatter } from '../lib/express-validator';
-import Comment from '../models/Comment';
 import Post from '../models/Post';
 
 export default class PostController {
   /**
    * Busca todos os posts
    */
-  async getPosts(req: Request, res: Response, next: NextFunction) {
+  async getPosts(
+    req: Request<{}, {}, {}, { page?: number }>,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
+      const pageNumber = Number(req.query.page) || 1;
+
       const posts = await Post.find({ isPublished: true })
         .populate('commentsCount')
         .populate('author', '-password -refreshToken -__v')
-        .select('-__v -content');
-      return res.status(StatusCodes.OK).json({ posts });
+        .select('-__v -content')
+        .skip((pageNumber - 1) * 10)
+        .limit(10);
+
+      const totalPosts = await Post.find().count();
+      const totalPages = Math.ceil(totalPosts / 10);
+
+      const result: any = {
+        posts,
+        page: pageNumber,
+      };
+
+      if (pageNumber < totalPages)
+        result.next = '/posts?page=' + (pageNumber + 1);
+      if (pageNumber > 1) result.prev = '/posts/?page=' + (pageNumber - 1);
+      return res.status(StatusCodes.OK).json(result);
     } catch (error) {
       return next(error);
     }
