@@ -95,6 +95,11 @@ class UserController {
         return res.status(StatusCodes.CREATED).json({
           token,
           refreshToken,
+          profile: {
+            email: savedUser.email,
+            firstName: savedUser.firstName,
+            lastName: savedUser.lastName,
+          },
         });
       } catch (err) {
         return next(err);
@@ -320,6 +325,11 @@ class UserController {
         return res.status(StatusCodes.OK).json({
           token,
           refreshToken,
+          profile: {
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          },
         });
       } catch (err) {
         return res.status(StatusCodes.UNAUTHORIZED).json({
