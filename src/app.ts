@@ -1,3 +1,4 @@
+import cors from 'cors';
 import 'dotenv/config';
 import express from 'express';
 import { connectToDatabase } from './database';
@@ -13,6 +14,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(UserObjectRetrieve);
+app.use(cors());
 
 // Rotas
 app.use('/comments', commentRoutes);
