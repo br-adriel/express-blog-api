@@ -34,7 +34,7 @@ export default class CommentController {
       }).count();
       const totalPages = Math.ceil(totalComments / 10);
 
-      if (pageNumber > totalPages)
+      if (pageNumber > totalPages && totalPages !== 0)
         return res.sendStatus(StatusCodes.BAD_REQUEST);
 
       const result: any = {

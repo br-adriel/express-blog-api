@@ -126,7 +126,7 @@ class UserController {
       const totalUsers = await User.count();
       const totalPages = Math.ceil(totalUsers / 10);
 
-      if (pageNumber > totalPages)
+      if (pageNumber > totalPages && totalPages !== 0)
         return res.sendStatus(StatusCodes.BAD_REQUEST);
 
       const result: any = {

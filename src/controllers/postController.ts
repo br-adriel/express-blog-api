@@ -29,7 +29,7 @@ export default class PostController {
       const totalPosts = await Post.count();
       const totalPages = Math.ceil(totalPosts / 10);
 
-      if (pageNumber > totalPages)
+      if (pageNumber > totalPages && totalPages !== 0)
         return res.sendStatus(StatusCodes.BAD_REQUEST);
 
       const result: any = {
