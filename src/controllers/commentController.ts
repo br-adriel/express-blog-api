@@ -25,6 +25,9 @@ export default class CommentController {
 
       const comments = await Comment.find({ post: req.params.postId })
         .populate('author', '-__v -password -refreshToken')
+        .sort({
+          createdAt: -1,
+        })
         .select('-__v -post')
         .skip((pageNumber - 1) * 10)
         .limit(10);
@@ -98,8 +101,10 @@ export default class CommentController {
           content: req.body.content,
           post: req.params.postId,
         });
-        await comment.save();
-        return res.sendStatus(StatusCodes.CREATED);
+        const newComment = await comment.save();
+        return res.status(StatusCodes.CREATED).json({
+          comment: newComment,
+        });
       } catch (error) {
         return next(error);
       }
