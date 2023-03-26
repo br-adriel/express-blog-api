@@ -99,6 +99,8 @@ class UserController {
             email: savedUser.email,
             firstName: savedUser.firstName,
             lastName: savedUser.lastName,
+            isAuthor: savedUser.isAuthor,
+            isAdmin: savedUser.isAdmin,
           },
         });
       } catch (err) {
@@ -329,6 +331,8 @@ class UserController {
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
+            isAuthor: user.isAuthor,
+            isAdmin: user.isAdmin,
           },
         });
       } catch (err) {
