@@ -20,6 +20,7 @@ export default class PostController {
       if (pageNumber < 1) return res.sendStatus(StatusCodes.BAD_REQUEST);
 
       const posts = await Post.find({ isPublished: true })
+        .sort({ publishDate: -1 })
         .populate('commentsCount')
         .populate('author', '-password -refreshToken -__v')
         .select('-__v -content')
