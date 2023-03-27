@@ -1,5 +1,4 @@
 import { model, Schema, Types } from 'mongoose';
-import Comment from './Comment';
 import { IUser } from './User';
 
 export interface IPost {
@@ -10,6 +9,8 @@ export interface IPost {
   commentsCount: number;
   createdAt: Date;
   updatedAt: Date;
+  image: string;
+  publishDate?: Date;
 }
 
 const PostSchema = new Schema<IPost>(
@@ -18,6 +19,8 @@ const PostSchema = new Schema<IPost>(
     content: { type: String, required: true, minlength: 1 },
     title: { type: String, required: true, minlength: 1 },
     isPublished: { type: Boolean, required: true, default: false },
+    image: { type: String, required: true },
+    publishDate: { type: Date, required: false },
   },
   {
     timestamps: true,

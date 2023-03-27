@@ -83,6 +83,14 @@ export default class PostController {
       .isLength({ min: 1 })
       .withMessage('Adicione conteúdo a sua postagem'),
 
+    body('image')
+      .isLength({ min: 1 })
+      .withMessage('Adicione uma imagem de capa'),
+
+    body('publishNow')
+      .isBoolean()
+      .withMessage('publishtNow deve ser true ou false'),
+
     async (
       req: Request<
         {},
@@ -90,6 +98,8 @@ export default class PostController {
         {
           title: string;
           content: string;
+          image: string;
+          publishNow: boolean;
         }
       >,
       res: Response,
@@ -106,8 +116,15 @@ export default class PostController {
         const post = new Post({
           title: req.body.title,
           content: req.body.content,
+          image: req.body.image,
           author: req.user!.id,
         });
+
+        if (req.body.publishNow) {
+          post.isPublished = true;
+          post.publishDate = new Date();
+        }
+
         await post.save();
         return res.sendStatus(StatusCodes.CREATED);
       } catch (error) {
