@@ -42,4 +42,10 @@ userRoutes.post('/authenticate', userController.login);
 
 userRoutes.post('/authenticate/refresh', userController.refreshToken);
 
+userRoutes.post(
+  '/authenticate/logout',
+  UserMustBeAuthenticated,
+  userController.logout
+);
+
 export default userRoutes;

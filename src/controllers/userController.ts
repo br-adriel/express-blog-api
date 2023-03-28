@@ -377,6 +377,22 @@ class UserController {
       });
     }
   }
+
+  /**
+   * Realiza o logout do usuário
+   */
+  async logout(req: Request, res: Response, next: NextFunction) {
+    try {
+      await User.findByIdAndUpdate(req.user?.id, {
+        $unset: { refreshToken: '' },
+      });
+      const refreshToken = await RefreshToken.findOne({ user: req.user?.id });
+      refreshToken?.deleteOne();
+      return res.sendStatus(StatusCodes.OK);
+    } catch (error) {
+      return next(error);
+    }
+  }
 }
 
 export default UserController;
