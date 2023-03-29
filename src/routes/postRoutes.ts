@@ -17,6 +17,8 @@ postRoutes.post(
   postController.createPost
 );
 
+postRoutes.get('/manage', UserMustBeAuthenticated, postController.getUserPosts);
+
 postRoutes.get('/:id', postController.getPost);
 postRoutes.patch(
   '/:id',
