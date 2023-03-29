@@ -211,4 +211,57 @@ export default class PostController {
       return next(error);
     }
   }
+
+  /**
+   * Busca todos os posts do usuário
+   */
+  async getUserPosts(
+    req: Request<{}, {}, {}, { page?: number }>,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const pageNumber = Number.isInteger(Number(req.query.page))
+        ? Number(req.query.page)
+        : 1;
+      if (pageNumber < 1) return res.sendStatus(StatusCodes.BAD_REQUEST);
+
+      let posts;
+      if (req.user?.isAdmin) {
+        posts = await Post.find()
+          .sort({ publishDate: -1 })
+          .populate('commentsCount')
+          .populate('author', '-password -refreshToken -__v')
+          .select('-__v -content')
+          .skip((pageNumber - 1) * 10)
+          .limit(10);
+      } else {
+        posts = await Post.find({ author: req.user?.id })
+          .sort({ publishDate: -1 })
+          .populate('commentsCount')
+          .populate('author', '-password -refreshToken -__v')
+          .select('-__v -content')
+          .skip((pageNumber - 1) * 10)
+          .limit(10);
+      }
+      const totalPosts = await Post.count();
+      const totalPages = Math.ceil(totalPosts / 10);
+
+      if (pageNumber > totalPages && totalPages !== 0)
+        return res.sendStatus(StatusCodes.BAD_REQUEST);
+
+      const result: any = {
+        posts,
+        page: pageNumber,
+      };
+
+      if (pageNumber < totalPages)
+        result.next = '/posts/manage?page=' + (pageNumber + 1);
+      if (pageNumber > 1)
+        result.prev = '/posts/manage?page=' + (pageNumber - 1);
+      return res.status(StatusCodes.OK).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
 }
