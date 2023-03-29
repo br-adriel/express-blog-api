@@ -193,6 +193,9 @@ export default class PostController {
     }
   }
 
+  /**
+   * Realiza a publicação de uma postagem
+   */
   async publishPost(
     req: Request<{ id: string }>,
     res: Response,
@@ -200,7 +203,7 @@ export default class PostController {
   ) {
     try {
       const post = await Post.findByIdAndUpdate(req.params.id, {
-        $set: { isPublished: true },
+        $set: { isPublished: true, publishDate: new Date() },
       });
       if (!post) return res.sendStatus(StatusCodes.NOT_FOUND);
       res.sendStatus(StatusCodes.OK);
