@@ -6,6 +6,7 @@ declare global {
       DB_URL?: string;
       PORT?: number;
       TOKEN_SECRET?: string;
+      ALLOWED_ORIGINS?: string;
     }
   }
 

@@ -14,7 +14,11 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(UserObjectRetrieve);
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS,
+  })
+);
 
 // Rotas
 app.use('/comments', commentRoutes);
