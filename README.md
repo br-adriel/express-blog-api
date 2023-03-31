@@ -31,6 +31,7 @@ API para gerenciamento de conteúdo de blog construída para uma licão do
   - [Autenticação](#autenticação)
     - [Login](#rota-1---login)
     - [Refresh token](#rota-2---refresh-token)
+    - [Logout](#rota-3---logout)
 
 ## Executando o projeto localmente
 
@@ -161,13 +162,14 @@ o login ou cadastro atráves do Bearer token.
 
 ### Listagem e detalhes
 
-|  #  | Método | Rota                  |                                                                            |
-| :-: | ------ | --------------------- | -------------------------------------------------------------------------- |
-|  1  | `GET`  | `/users`              | Retorna array com todos os usuários cadastrados                            |
-|  2  | `GET`  | `/users/:id`          | Retorna detalhes do usuário com `_id` igual a `:id`                        |
-|  3  | `GET`  | `/posts`              | Retorna array de posts publicados                                          |
-|  4  | `GET`  | `/posts/:id`          | Retorna detalhes do post com `_id` igual a `:id`                           |
-|  5  | `GET`  | `/posts/:id/comments` | Retorna array com os comentários referentes ao post de `_id` igual a `:id` |
+|  #  | Método | Rota                  |                                                                                     |
+| :-: | ------ | --------------------- | ----------------------------------------------------------------------------------- |
+|  1  | `GET`  | `/users`              | Retorna array com todos os usuários cadastrados                                     |
+|  2  | `GET`  | `/users/:id`          | Retorna detalhes do usuário com `_id` igual a `:id`                                 |
+|  3  | `GET`  | `/posts`              | Retorna array de posts publicados                                                   |
+|  4  | `GET`  | `/posts/:id`          | Retorna detalhes do post com `_id` igual a `:id`                                    |
+|  5  | `GET`  | `/posts/:id/comments` | Retorna array com os comentários referentes ao post de `_id` igual a `:id`          |
+|  6  | `GET`  | `/posts/manage`       | Retorna array com os posts sobre os quais o usuário tem permissão de edição/remoção |
 
 As rotas 1, 3 e 5 retornam o conteúdo em páginas de 10 itens. Para buscar os
 itens de uma página específica basta passar o atributo `page` na forma de query
@@ -178,7 +180,7 @@ parameter, como mostrado no exemplo a segur:
 ```
 
 Quando uma página possui uma próxima página ou uma página anterior, sua url
-relativa é retornada nos parâmetros `prev` e `next` do json retornado, seguindo
+é retornada nos parâmetros `prev` e `next` do json retornado, seguindo
 o exemplo anterior, teríamos na resposta algo como o seguinte:
 
 ```javascript
@@ -217,11 +219,16 @@ símbolo:`
 ```
 
 Caso não ocorram erros e o usuário seja criado com sucesso, o sistema já
-realizará o login do usuário e retornará o token de autenticação e o
-refreshToken, como mostrado no exemplo a seguir:
+realizará o login do usuário e retornará o perfil do usuário, o token de
+autenticação e o refreshToken, como mostrado no exemplo a seguir:
 
 ```json
 {
+  "profile": {
+    "firstName": "João",
+    "lastName": "Silva",
+    "email": "joaosilca@email.com"
+  },
   "token": "tokenDeAutenticacao.sequenciaAleatoria.!123456?",
   "refreshToken": "refreshToken.sequenciaAleatoria.!123456?"
 }
@@ -235,7 +242,8 @@ similar ao mostrado no exemplo a seguir:`
 ```json
 {
   "title": "Olá mundo",
-  "content": "Meu primeiro post"
+  "content": "Meu primeiro post",
+  "image": "https://site-de-imagens/imagem.jpg"
 }
 ```
 
@@ -293,13 +301,15 @@ espera que o body da requisição tenha um formato similar aos exemplos a seguir
 
 #### Rota #4 - Alterar post
 
-A rota de alteração de post permite a modificação de seu título e conteúdo, e
-espera que o body da requisição tenha um formato similar aos exemplos a seguir:
+A rota de alteração de post permite a modificação de seu título, conteúdo e
+imagem, e espera que o body da requisição tenha um formato similar aos exemplos
+a seguir:
 
 ```json
 {
   "title": "Novo título",
-  "content": "Novo conteúdo"
+  "content": "Novo conteúdo",
+  "image": "https://site-de-imagens/imagem.jpg"
 }
 ```
 
@@ -312,6 +322,12 @@ espera que o body da requisição tenha um formato similar aos exemplos a seguir
 ```json
 {
   "content": "Novo conteúdo"
+}
+```
+
+```json
+{
+  "image": "https://site-de-imagens/imagem.jpg"
 }
 ```
 
@@ -337,6 +353,7 @@ critério, é necessário ter privilégios de administrador.
 | :-: | ------- | ----------------------------- | --------------------------------------------------- |
 |  1  | `POST`  | `/users/authenticate`         | Gera o token e o refreshToken                       |
 |  2  | `POST`  | `/users/authenticate/refresh` | Gera um novo token a partir do refreshToken passado |
+|  3  | `POST`  | `/users/authenticate/logout` | Remove o refreshToken armazenado no banco de dados |
 
 #### Rota #1 - Login
 
@@ -350,7 +367,7 @@ mostrado no exemplo a seguir:
 }
 ```
 
-Caso o login seja bem sucessido, a resposta dessa requisição fornecerá o token e
+Caso o login seja bem sucedido, a resposta dessa requisição fornecerá o token e
 o refreshToken:
 
 ```json
@@ -365,5 +382,10 @@ o refreshToken:
 Para gerar um novo token e seguir com o usuário autenticado basta enviar o
 refreshToken para essa rota atráves do Bearer token e um novo token será
 retornado.
+
+#### Rota #3 - Logout
+
+Para remover refresh token atual e encerrar a "sessão" basta enviar o token
+de acesso para essa rota atráves do Bearer token e o logout será realizado.
 
 [Voltar ao início](#blog-api)
